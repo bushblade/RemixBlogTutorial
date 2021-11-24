@@ -57,6 +57,17 @@ export async function getPost(slug: string) {
   return { slug, title: attributes.title, html }
 }
 
+export async function getRawPost(slug: string) {
+  let filepath = path.join(postsPath, slug + '.md')
+  let file = await fs.readFile(filepath)
+  let { attributes, body } = parseFrontMatter(file.toString())
+  invariant(
+    isValidPostAttributes(attributes),
+    `Post ${filepath} is missing attributes`
+  )
+  return { slug, title: attributes.title, body }
+}
+
 export async function createPost(post: NewPost) {
   let md = `---\ntitle: ${post.title}\n---\n\n${post.markdown}`
   await fs.writeFile(path.join(postsPath, post.slug + '.md'), md)

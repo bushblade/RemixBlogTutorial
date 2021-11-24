@@ -1,7 +1,19 @@
-import { Form, redirect, useActionData, useTransition } from 'remix'
-import type { ActionFunction } from 'remix'
-import { createPost } from '~/post'
+import {
+  useLoaderData,
+  LoaderFunction,
+  Form,
+  ActionFunction,
+  redirect,
+  useActionData,
+  useTransition,
+} from 'remix'
 import invariant from 'tiny-invariant'
+import { getRawPost, createPost } from '~/post'
+
+export let loader: LoaderFunction = async ({ params }) => {
+  invariant(params.slug, 'expected params.slug')
+  return getRawPost(params.slug)
+}
 
 export let action: ActionFunction = async ({ request }) => {
   await new Promise((res) => setTimeout(res, 1000))
@@ -32,7 +44,8 @@ export let action: ActionFunction = async ({ request }) => {
   return redirect('admin')
 }
 
-export default function NewPost() {
+export default function EditPost() {
+  let post = useLoaderData()
   let errors = useActionData()
   let transition = useTransition()
   return (
@@ -40,20 +53,20 @@ export default function NewPost() {
       <p>
         <label>
           Post Title: {errors?.title ? <em>Title is required</em> : null}
-          <input type='text' name='title' />
+          <input type='text' name='title' defaultValue={post.title} />
         </label>
       </p>
       <p>
         <label>
           Post Slug: {errors?.slug ? <em>Slug is required</em> : null}
-          <input type='text' name='slug' />
+          <input type='text' name='slug' defaultValue={post.slug} />
         </label>
       </p>
       <p>
         <label htmlFor='markdown'>Markdown:</label>{' '}
         {errors?.markdown ? <em>Markdown is required</em> : null}
         <br />
-        <textarea rows={20} name='markdown'></textarea>
+        <textarea rows={20} name='markdown' defaultValue={post.body}></textarea>
       </p>
       <p>
         <button type='submit'>
